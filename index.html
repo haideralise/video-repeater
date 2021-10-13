@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="app" class="container">
+    <div div class="row">
+        <button type="button" @click="emptyVideo" class="btn btn-info">+</button>
+        <div v-if="s_video">
+           <div class="mb-3">
+               <label class="control-label">Url</label>
+               <input type="text" class="form-control" v-model="s_video.url" placeholder="Video url" />
+           </div>
+           <div class="mb-3">
+               <label class="control-label">Minutes</label>
+               <input type="number" v-model="s_video.mins" class="form-control" placeholder="minutes" />
+           </div>
+           <div class="mb-3">
+               <label class="control-label">Seconds</label>
+               <input type="number" v-model="s_video.seconds" class="form-control" placeholder="seconds" />
+           </div>
+
+            <button type="button" class="btn btn-primary" @click="addVideo(s_video)"> Save </button>
+        </div>
+
+
+        <ul>
+            <li v-for="video in videos">
+                Url
+                <input type="text" v-model="video.url" placeholder="Video url" />
+                Minutes
+                <input type="number" v-model="video.mins" placeholder="minutes" />
+                Seconds
+                <input type="number" v-model="video.seconds" placeholder="seconds" />
+                <ul>
+                    <li v-for="(time,index) in video.run_times"> {{ msToTime(time)}} | {{ time }}
+                    <span v-show="index !== 0 &&  video.run_times[index + 1]" class="well">
+                        {{ (video.run_times[index + 1] - video.run_times[index] ) / 1000 }}
+                    </span>
+                    </li>
+                </ul>
+                <span>{{ video.counter}}</span>
+            </li>
+        </ul>
+
+        <button type="button" @click="startVideos"> Start Videos</button>
+        <button type="button" @click="stopVideos"> stop Videos</button>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+
+<script type="text/javascript">
+    var app = new Vue({el: '#app',
+    data : function () {
+        return {
+            message : "hwll",
+            repeatOrNot: true,
+            videoObject :
+                {
+                    url:  '',
+                    mins: '',
+                    seconds : '',
+                    mili_seconds : null
+                },
+            videos : [],
+            milli_seconds_now : null,
+            last_run_time: null,
+            today: null,
+            s_video: null,
+            maximum_counter: 3
+
+
+        }
+    },
+        methods: {
+        addVideo(video){
+
+            video.mili_seconds =  (video.mins !== '' && video.mins !== 0) ? video.mins * 60 * 1000 : 0;
+            video.mili_seconds +=  (video.seconds !== '' && video.seconds !== 0) ? video.seconds * 1000 : 0;
+
+            this.videos.push(
+               video
+            );
+            this.emptyVideo();
+        },
+            emptyVideo(){
+                this.s_video =  this.getNewVideoObject();
+            },
+            startVideos(){
+                counter++;
+
+                this.videos.forEach( function (video, index, array) {
+                   app.addTimes(video);
+                    //    setTimeout( () => app.runVideo(video)
+                            /*for (let i = 0; i < 2; i++) {
+
+                                setTimeout(function () {
+                                    let win = window.open(video.url);
+                                    let timer = video.mili_seconds;
+                                    video.counter++;
+                                    console.log(timer);
+                                    setTimeout(function () {  win.close(); }, timer);
+                                }, i * 5000)
+                            }*/
+                  //      , delay )
+
+                    /*
+                   for (let i = 0; i < 2; i++) {
+
+                       setTimeout(function () {
+                           let win = window.open(video.url);
+                           let timer = video.mili_seconds;
+                           video.counter++;
+                           console.log(timer);
+                           setTimeout(function () {  win.close(); }, timer);
+                       }, i * 5000)
+                   }*/
+
+
+                })
+               // this.repeatVideos();
+            },
+            repeatVideos(){
+            if(this.repeatOrNot){
+                let interval = setInterval(this.startVideos, 10000);
+                setTimeout(function (){
+                    clearInterval(interval);
+                }, 10000 * 2);
+            }
+
+            },
+            stopVideos(){
+            this.repeatOrNot = false;
+            },
+
+            runVideo(video){
+                    let win = window.open(video.url);
+                    let timer = video.mili_seconds;
+                    video.counter++;
+                    setTimeout(function () {  win.close();
+                           if(video.counter <= this.maximum_counter) {
+                               this.runVideo(video);
+                           }
+                    }, timer + timer);
+            },
+            addTimes(video){
+                let delay = null;
+                let last_run_time = parseInt(localStorage.getItem('last_run_time'));
+
+                for (let i = 1; i<= app.maximum_counter; i++) {
+                    last_run_time += video.mili_seconds;
+                    delay = last_run_time;
+                    video.run_times.push(delay);
+                }
+                localStorage.setItem('last_run_time', last_run_time);
+
+            },
+            getNewVideoObject(){
+                return {
+                    url:  "https://www.youtube.com/watch?v=F7mKD2Un65I",
+                    mins: '',
+                    seconds : 10,
+                    mili_seconds : null,
+                    counter : 0,
+                    run_times : []
+                };
+            },
+            openTab(video){
+                let win = window.open(video.url);
+                let timer = video.mili_seconds;
+                video.counter++;
+                setTimeout(function () {
+                    win.close();
+                    if(video.counter % app.maximum_counter === 0) {
+                        video.run_times = [];
+                        app.addTimes(video);
+                    }
+                }, timer);
+            },
+            openVideoTabs(video){
+
+                let d = new Date();
+                let milli_seconds = d.getTime();
+                for (let i = 0; i<video.run_times.length; i++) {
+                    let video_time = video.run_times[i];
+
+                    if ( video_time <= (milli_seconds - 10000) ) {
+                        new Promise(( resolve, reject) => {
+                            console.log('Initial');
+                            video.run_times.shift();
+                            this.openTab(video);
+
+                            resolve();
+                        })
+
+                    }
+                }
+            },
+
+             msToTime(s) {
+        var ms = s % 1000;
+        s = (s - ms) / 1000;
+        var secs = s % 60;
+        s = (s - secs) / 60;
+        var mins = s % 60;
+        var hrs = (s - mins) / 60;
+
+        return hrs + ':' + mins + ':' + secs + '.' + ms;
+    }
+
+        },
+        mounted(){
+            let d = new Date();
+            this.today = d;
+            let milli_seconds = d.getTime();
+            this.milli_seconds_now = milli_seconds;
+            localStorage.setItem('last_run_time', milli_seconds);
+
+            setInterval(function () {
+                let d = new Date();
+                app.videos.forEach(function (video, index, array) {
+                    app.openVideoTabs(video)
+                })
+            }, 2000); //Every day
+        }
+
+
+    })
+    var counter = 0;
+    var videos =  [
+        {
+        url: "https://www.youtube.com/watch?v=tL9A63NlwiI",
+        time: 10000
+        },{
+        url: "https://www.youtube.com/watch?v=tL9A63NlwiI",
+        time: 8000
+        },{
+        url: "https://www.youtube.com/watch?v=tL9A63NlwiI",
+        time: 3000
+        },{
+        url: "https://www.youtube.com/watch?v=tL9A63NlwiI",
+        time: 7000
+        },{
+        url: "https://www.youtube.com/watch?v=tL9A63NlwiI",
+        time: 11000
+        },
+    ];
+    function openWindows() {
+        counter++;
+        for (let i = 0; i < 5; i++) {
+            let win = window.open(videos[i].url);
+            let timer = videos[i].time;
+            console.log(timer);
+            setTimeout(function () {
+                win.close();
+            }, timer);
+        }
+    }
+    function resolve() {
+        console.log('resolve');
+    }
+    function reject() {
+        console.log('reject');
+
+    }
+
+
+    //    setInterval(openWindows, 10000)
+
+</script>
+</body>
+</html>
