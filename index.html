@@ -3,52 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap-theme.min.css" integrity="sha384-6pzBo3FDv/PJ8r2KRkGHifhEocL+1X2rVCTTkUfGk7/0pbek5mMa1upzvWbrUbOZ" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+
 </head>
 <body>
-<div id="app" class="container">
+<div id="app" class="container-fluid">
+    <div class="jumbotron">
+        <h1>Hello, Youtubers!</h1>
+        <p>Here is the App you can use to repeat your videos</p>
+        <p><button class="btn btn-primary btn-lg"  role="button" @click="emptyVideo"> Add Video</button></p>
+    </div>
+    Max tabs : <input type="number" class="form-control" v-model="maximum_counter" />
+    <h1>{{ tabs }}</h1>
+
+    <div v-if="s_video" class="form form-inline">
+
+            <div class="row text-center">
+                <h1>Video Form </h1>
+                <div class="">
+                    <div class="form-group">
+                        <label class="control-label">Url</label>
+                        <input type="text" class="form-control" v-model="s_video.url" placeholder="Video url" />
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">Minutes</label>
+                        <input type="number" v-model="s_video.mins" class="form-control" placeholder="minutes" />
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">Seconds</label>
+                        <input type="number" v-model="s_video.seconds" class="form-control" placeholder="seconds" />
+                    </div>
+
+                    <button type="button" class="btn btn-primary" @click="addVideo(s_video)"> Save </button>
+                </div>
+            </div>
+    </div>
+    <hr />
+
     <div div class="row">
-        <button type="button" @click="emptyVideo" class="btn btn-info">+</button>
-        <div v-if="s_video">
-           <div class="mb-3">
-               <label class="control-label">Url</label>
-               <input type="text" class="form-control" v-model="s_video.url" placeholder="Video url" />
-           </div>
-           <div class="mb-3">
-               <label class="control-label">Minutes</label>
-               <input type="number" v-model="s_video.mins" class="form-control" placeholder="minutes" />
-           </div>
-           <div class="mb-3">
-               <label class="control-label">Seconds</label>
-               <input type="number" v-model="s_video.seconds" class="form-control" placeholder="seconds" />
-           </div>
+        <div class="col-md-6">
+            <h3>Videos <span v-show="videos.length === 0" class="text-danger">(No videos)</span> </h3>
 
-            <button type="button" class="btn btn-primary" @click="addVideo(s_video)"> Save </button>
+            <div class="list-group"  v-show="videos.length > 0">
+
+                <div class="text-center" v-show="videos.length > 0">
+                    <button type="button" @click="startVideos" class="btn btn-primary"> Start Tracks</button>
+                    <button type="button" @click="stopVideos" class="btn btn-default"> stop Tracks</button>
+                </div>
+                <div v-for="video in videos" class="list-group-item">
+                    <img :src="getImageUrl(video)" class="img img-thumbnail" />
+                    <span class="badge" style="font-size: x-large">{{ video.counter}}</span>
+                    <div class="list-group-item-text">
+                        <p>Minutes : {{ video.mins > 0 ? video.mins : 0}}
+                            Seconds : {{ video.seconds > 0 ? video.seconds : 0 }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
         </div>
+        <div class="col-md-6">
+            <h3>Tracks <span v-show="videos.length === 0" class="text-danger">(No tracks)</span> </h3>
+            <div class="list-group"  v-show="tracks.length > 0">
+                <div v-for="track in tracks" class="list-group-item">
+                    <img :src="getImageUrl(track.video)" class="img img-thumbnail" />
+                    <div class="list-group-item-text">
+                        <p>Minutes : {{ track.video.mins > 0 ? track.video.mins : 0}}
+                        Seconds : {{ track.video.seconds > 0 ? track.video.seconds : 0 }}
+                        </p>
+                        <b>time : {{ msToTime(track.time) }}</b>
+                    </div>
+                </div>
+            </div>
 
+        </div>
+        <hr/>
 
-        <ul>
-            <li v-for="video in videos">
-                Url
-                <input type="text" v-model="video.url" placeholder="Video url" />
-                Minutes
-                <input type="number" v-model="video.mins" placeholder="minutes" />
-                Seconds
-                <input type="number" v-model="video.seconds" placeholder="seconds" />
-                <ul>
-                    <li v-for="(time,index) in video.run_times"> {{ msToTime(time)}} | {{ time }}
-                    <span v-show="index !== 0 &&  video.run_times[index + 1]" class="well">
-                        {{ (video.run_times[index + 1] - video.run_times[index] ) / 1000 }}
-                    </span>
-                    </li>
-                </ul>
-                <span>{{ video.counter}}</span>
-            </li>
-        </ul>
-
-        <button type="button" @click="startVideos"> Start Videos</button>
-        <button type="button" @click="stopVideos"> stop Videos</button>
 
     </div>
 </div>
@@ -61,6 +99,7 @@
         return {
             message : "hwll",
             repeatOrNot: true,
+            startTrack: false,
             videoObject :
                 {
                     url:  '',
@@ -73,7 +112,9 @@
             last_run_time: null,
             today: null,
             s_video: null,
-            maximum_counter: 3
+            maximum_counter: 3,
+            tracks: [],
+            tabs : 0,
 
 
         }
@@ -93,38 +134,9 @@
                 this.s_video =  this.getNewVideoObject();
             },
             startVideos(){
-                counter++;
+                this.startTrack = true;
+                this.makeTracks();
 
-                this.videos.forEach( function (video, index, array) {
-                   app.addTimes(video);
-                    //    setTimeout( () => app.runVideo(video)
-                            /*for (let i = 0; i < 2; i++) {
-
-                                setTimeout(function () {
-                                    let win = window.open(video.url);
-                                    let timer = video.mili_seconds;
-                                    video.counter++;
-                                    console.log(timer);
-                                    setTimeout(function () {  win.close(); }, timer);
-                                }, i * 5000)
-                            }*/
-                  //      , delay )
-
-                    /*
-                   for (let i = 0; i < 2; i++) {
-
-                       setTimeout(function () {
-                           let win = window.open(video.url);
-                           let timer = video.mili_seconds;
-                           video.counter++;
-                           console.log(timer);
-                           setTimeout(function () {  win.close(); }, timer);
-                       }, i * 5000)
-                   }*/
-
-
-                })
-               // this.repeatVideos();
             },
             repeatVideos(){
             if(this.repeatOrNot){
@@ -136,7 +148,7 @@
 
             },
             stopVideos(){
-            this.repeatOrNot = false;
+            this.startTrack = false;
             },
 
             runVideo(video){
@@ -149,18 +161,6 @@
                            }
                     }, timer + timer);
             },
-            addTimes(video){
-                let delay = null;
-                let last_run_time = parseInt(localStorage.getItem('last_run_time'));
-
-                for (let i = 1; i<= app.maximum_counter; i++) {
-                    last_run_time += video.mili_seconds;
-                    delay = last_run_time;
-                    video.run_times.push(delay);
-                }
-                localStorage.setItem('last_run_time', last_run_time);
-
-            },
             getNewVideoObject(){
                 return {
                     url:  "https://www.youtube.com/watch?v=F7mKD2Un65I",
@@ -172,62 +172,74 @@
                 };
             },
             openTab(video){
+            app.tabs++;
                 let win = window.open(video.url);
                 let timer = video.mili_seconds;
-                video.counter++;
+                app.videos.filter(v => v.url === video.url)[0].counter++;
                 setTimeout(function () {
                     win.close();
-                    if(video.counter % app.maximum_counter === 0) {
-                        video.run_times = [];
-                        app.addTimes(video);
-                    }
+                    app.tabs--;
                 }, timer);
-            },
-            openVideoTabs(video){
-
-                let d = new Date();
-                let milli_seconds = d.getTime();
-                for (let i = 0; i<video.run_times.length; i++) {
-                    let video_time = video.run_times[i];
-
-                    if ( video_time <= (milli_seconds - 10000) ) {
-                        new Promise(( resolve, reject) => {
-                            console.log('Initial');
-                            video.run_times.shift();
-                            this.openTab(video);
-
-                            resolve();
-                        })
-
-                    }
-                }
             },
 
              msToTime(s) {
-        var ms = s % 1000;
-        s = (s - ms) / 1000;
-        var secs = s % 60;
-        s = (s - secs) / 60;
-        var mins = s % 60;
-        var hrs = (s - mins) / 60;
+                 return (new Date(s)).toString(); // result: Wed Jan 12 2011 12:42:46 GMT-0800 (PST)
+            },
+            makeTracks(){
 
-        return hrs + ':' + mins + ':' + secs + '.' + ms;
-    }
+                let d = new Date();
+                let time_now_in_milli_seconds = d.getTime();
+                // loop through for max counter
+                for (let i = 0 ; i< this.maximum_counter; i++) {
+                    // make tracks with 3 seconds difference
+                    this.videos.forEach( function (video, index, array) {
+                        // add 3 seconds for each video
+                        time_now_in_milli_seconds += 3000;
+                        app.tracks.push({
+                            id: index, video, time : time_now_in_milli_seconds,
+                        });
+                    })
+                }
+            },
+            getImageUrl(video) {
+                return `https://img.youtube.com/vi/${ video.url.split('v=')[1]}/mqdefault.jpg`;
+            }
 
         },
+
         mounted(){
             let d = new Date();
             this.today = d;
             let milli_seconds = d.getTime();
-            this.milli_seconds_now = milli_seconds;
+
             localStorage.setItem('last_run_time', milli_seconds);
 
             setInterval(function () {
+                if (!app.startTrack) {
+                    return 0;
+                }
+                if( app.tabs == app.maximum_counter) {
+                    return 0;
+                }
                 let d = new Date();
-                app.videos.forEach(function (video, index, array) {
-                    app.openVideoTabs(video)
-                })
-            }, 2000); //Every day
+                let milli_seconds = d.getTime();
+                app.milli_seconds_now = milli_seconds;
+                if( app.startTrack && app.tracks.length === 0)
+                {
+                    app.makeTracks();
+                }
+                let current_track = app.tracks.filter( function (track) {
+                    return track.time <= milli_seconds;
+                })[0];
+                if(current_track != undefined) {
+                    app.tracks = app.tracks.filter(function (track){
+                        return track.time !== current_track.time;
+                    })
+                    app.openTab(current_track.video);
+                }
+
+                 console.log({current_track, milli_seconds});
+                }, 1000); //Every second
         }
 
 
