@@ -21,7 +21,18 @@
         <p>Here is the App you can use to repeat your videos</p>
         <p><button class="btn btn-primary btn-lg"  role="button" @click="emptyVideo"> Add Video</button></p>
     </div>
-    Max tabs : <input type="number" class="form-control" v-model="maximum_counter" />
+    <div class="row">
+        <div class="col-md-3">
+            Max tabs : <input type="number" class="form-control" v-model="maximum_counter" />
+        </div>
+        <div class="col-md-3">
+            Loading time in seconds for each video : <input type="number" class="form-control" v-model="loading_seconds" />
+        </div>
+        <div class="col-md-3">
+            Delay after each video in seconds : <input type="number" class="form-control" v-model="delay_seconds" />
+        </div>
+    </div>
+
     <h1>{{ tabs }}</h1>
 
     <div v-if="s_video" class="form form-inline">
@@ -57,6 +68,7 @@
                 <div class="text-center" v-show="videos.length > 0">
                     <button type="button" @click="startVideos" class="btn btn-primary"> Start Tracks</button>
                     <button type="button" @click="stopVideos" class="btn btn-default"> stop Tracks</button>
+                    <button type="button" @click="resetLocalStorageVideos" class="btn btn-danger"> Reset Videos</button>
                 </div>
                 <div v-for="video in videos" class="list-group-item">
                     <img :src="getImageUrl(video)" class="img img-thumbnail" />
@@ -73,6 +85,7 @@
         <div class="col-md-6">
             <h3>Tracks <span v-show="videos.length === 0" class="text-danger">(No tracks)</span> </h3>
             <div class="list-group"  v-show="tracks.length > 0">
+                <button class="btn btn-success" @click="resetTracks"> Rest Tracks</button>
                 <div v-for="track in tracks" class="list-group-item">
                     <img :src="getImageUrl(track.video)" class="img img-thumbnail" />
                     <div class="list-group-item-text">
@@ -115,19 +128,24 @@
             maximum_counter: 3,
             tracks: [],
             tabs : 0,
+            loading_seconds : 3,
+            // use for opening tab after this time
+            delay_seconds : 3,
 
 
         }
     },
         methods: {
         addVideo(video){
-
+            let videos = this.getLocalStorageVideos();
             video.mili_seconds =  (video.mins !== '' && video.mins !== 0) ? video.mins * 60 * 1000 : 0;
             video.mili_seconds +=  (video.seconds !== '' && video.seconds !== 0) ? video.seconds * 1000 : 0;
-
-            this.videos.push(
+console.log(videos);
+            videos.push(
                video
             );
+            localStorage.setItem('videos', JSON.stringify(videos));
+            this.videos = videos;
             this.emptyVideo();
         },
             emptyVideo(){
@@ -174,7 +192,7 @@
             openTab(video){
             app.tabs++;
                 let win = window.open(video.url);
-                let timer = video.mili_seconds;
+                let timer = video.mili_seconds + (parseInt(this.loading_seconds) * 3);
                 app.videos.filter(v => v.url === video.url)[0].counter++;
                 setTimeout(function () {
                     win.close();
@@ -190,19 +208,45 @@
                 let d = new Date();
                 let time_now_in_milli_seconds = d.getTime();
                 // loop through for max counter
-                for (let i = 0 ; i< this.maximum_counter; i++) {
+                let loading_seconds = parseInt(this.loading_seconds) * 1000;
+               // for (let i = 0 ; i< this.maximum_counter; i++) {
                     // make tracks with 3 seconds difference
                     this.videos.forEach( function (video, index, array) {
-                        // add 3 seconds for each video
-                        time_now_in_milli_seconds += 3000;
-                        app.tracks.push({
-                            id: index, video, time : time_now_in_milli_seconds,
-                        });
+                        for (let i = 0 ; i< app.maximum_counter; i++) {
+
+                            // add 3 seconds for each video
+                            console.log((parseInt(app.delay_seconds) * 1000), 'delay time')
+                            time_now_in_milli_seconds += ((parseInt(app.delay_seconds) * 1000));
+
+                            console.log(loading_seconds, time_now_in_milli_seconds, 'secnds time');
+                            app.tracks.push({
+                                id: index, video, time: time_now_in_milli_seconds,
+                            });
+                        }
                     })
-                }
+                //}
             },
             getImageUrl(video) {
+            if(!video || !video.url) {
+                return  '';
+            }
                 return `https://img.youtube.com/vi/${ video.url.split('v=')[1]}/mqdefault.jpg`;
+            },
+
+            getLocalStorageVideos(){
+                if(!localStorage.hasOwnProperty('videos')){
+                    localStorage.setItem('videos', JSON.stringify([]));
+                }
+                return JSON.parse(localStorage.getItem('videos'));
+            },
+            resetLocalStorageVideos(){
+                    localStorage.setItem('videos', JSON.stringify([]));
+                    this.videos = [];
+                    this.tracks = [];
+            },
+            resetTracks(){
+                this.tracks = [];
+                this.makeTracks();
             }
 
         },
@@ -211,6 +255,7 @@
             let d = new Date();
             this.today = d;
             let milli_seconds = d.getTime();
+            this.videos = this.getLocalStorageVideos();
 
             localStorage.setItem('last_run_time', milli_seconds);
 
@@ -224,7 +269,7 @@
                 let d = new Date();
                 let milli_seconds = d.getTime();
                 app.milli_seconds_now = milli_seconds;
-                if( app.startTrack && app.tracks.length === 0)
+                if( app.startTrack && app.tracks.length <  app.maximum_counter)
                 {
                     app.makeTracks();
                 }
