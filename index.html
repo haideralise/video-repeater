@@ -289,46 +289,6 @@ console.log(videos);
 
 
     })
-    var counter = 0;
-    var videos =  [
-        {
-        url: "https://www.youtube.com/watch?v=tL9A63NlwiI",
-        time: 10000
-        },{
-        url: "https://www.youtube.com/watch?v=tL9A63NlwiI",
-        time: 8000
-        },{
-        url: "https://www.youtube.com/watch?v=tL9A63NlwiI",
-        time: 3000
-        },{
-        url: "https://www.youtube.com/watch?v=tL9A63NlwiI",
-        time: 7000
-        },{
-        url: "https://www.youtube.com/watch?v=tL9A63NlwiI",
-        time: 11000
-        },
-    ];
-    function openWindows() {
-        counter++;
-        for (let i = 0; i < 5; i++) {
-            let win = window.open(videos[i].url);
-            let timer = videos[i].time;
-            console.log(timer);
-            setTimeout(function () {
-                win.close();
-            }, timer);
-        }
-    }
-    function resolve() {
-        console.log('resolve');
-    }
-    function reject() {
-        console.log('reject');
-
-    }
-
-
-    //    setInterval(openWindows, 10000)
 
 </script>
 </body>
